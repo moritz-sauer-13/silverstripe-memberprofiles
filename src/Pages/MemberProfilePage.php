@@ -33,6 +33,7 @@ use SilverStripe\Forms\TreeDropdownField;
 use SilverStripe\ORM\HasManyList;
 use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\ORM\ValidationResult;
+use SilverStripe\Security\Security;
 
 /**
  * A MemberProfilePage allows the administratior to set up a page with a subset of the
