@@ -8,6 +8,7 @@ use SilverStripe\Core\Convert;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Security\Security;
 
 /**
  * This validator provides the unique and required functionality for {@link MemberProfileField}s.
