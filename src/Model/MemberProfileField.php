@@ -88,7 +88,7 @@ class MemberProfileField extends DataObject
 
     public function getCMSFields()
     {
-        Requirements::javascript('symbiote/silverstripe-memberprofiles: client/javascript/MemberProfileFieldCMS.js');
+        Requirements::javascript('moritz-sauer-13/silverstripe-memberprofiles: client/javascript/MemberProfileFieldCMS.js');
 
         $fields = parent::getCMSFields();
         $memberFields = $this->getMemberFields();
@@ -124,13 +124,13 @@ class MemberProfileField extends DataObject
         ));
 
         $fields->insertBefore(
-            new HeaderField('VisibilityHeader', _t('MemberProfiles.VISIBILITY', 'Visibility')),
-            'ProfileVisibility'
+            'ProfileVisibility',
+            new HeaderField('VisibilityHeader', _t('MemberProfiles.VISIBILITY', 'Visibility'))
         );
 
         $fields->insertBefore(
-            new HeaderField('ValidationHeader', _t('MemberProfiles.VALIDATION', 'Validation')),
-            'CustomError'
+            'CustomError',
+            new HeaderField('ValidationHeader', _t('MemberProfiles.VALIDATION', 'Validation'))
         );
 
         if ($memberField instanceof DropdownField) {
