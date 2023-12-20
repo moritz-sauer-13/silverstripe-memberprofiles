@@ -88,8 +88,6 @@ class MemberProfileField extends DataObject
 
     public function getCMSFields()
     {
-        Requirements::javascript('moritz-sauer-13/silverstripe-memberprofiles: client/javascript/MemberProfileFieldCMS.js');
-
         $fields = parent::getCMSFields();
         $memberFields = $this->getMemberFields();
         $memberField = $memberFields->dataFieldByName($this->MemberField);
