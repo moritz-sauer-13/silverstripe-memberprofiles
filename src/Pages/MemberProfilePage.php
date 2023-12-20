@@ -169,7 +169,7 @@ class MemberProfilePage extends Page
 
     private static $description = '';
 
-    private static $icon = 'symbiote/silverstripe-memberprofiles: client/images/memberprofilepage.png';
+    private static $icon = 'moritz-sauer-13/silverstripe-memberprofiles: client/images/memberprofilepage.png';
 
     /**
      * If profile editing is disabled, but the current user can add members,
@@ -180,7 +180,7 @@ class MemberProfilePage extends Page
     public function Link($action = null)
     {
         if (!$action
-            && Member::currentUserID()
+            && Security::getCurrentUser()->ID
             && !$this->AllowProfileEditing
             && $this->CanAddMembers()
         ) {
