@@ -268,7 +268,7 @@ class MemberProfilePage extends Page
                         'in the "Settings" tab.'
                     )
                 ));
-                $fields->insertBefore($disabledNote, 'Sections');
+                $fields->insertBefore('Sections', $disabledNote);
             }
 
             $groups->setDescription(_t(
