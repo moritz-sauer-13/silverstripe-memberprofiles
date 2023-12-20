@@ -163,7 +163,7 @@ class MemberProfileViewer extends PageController
             'Type'     => 'View',
             'Member'   => $member,
             'Sections' => $sectionsList,
-            'IsSelf'   => $member->ID == Member::currentUserID()
+            'IsSelf'   => $member->ID == Security::getCurrentUser()
         ));
 
         return $controller;
