@@ -181,6 +181,7 @@ class MemberProfilePage extends Page
     public function Link($action = null)
     {
         if (!$action
+            && Security::getCurrentUser()
             && Security::getCurrentUser()->ID
             && !$this->AllowProfileEditing
             && $this->CanAddMembers()
