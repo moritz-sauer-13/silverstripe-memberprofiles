@@ -2,7 +2,7 @@
 
 namespace Symbiote\MemberProfiles\Forms;
 
-use SilverStripe\ORM\DataObject;
+use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Security\Member;
 use SilverStripe\ORM\DataObjectInterface;
 use SilverStripe\Forms\ReadonlyField;
@@ -32,10 +32,7 @@ class CheckableVisibilityField extends FormField
      */
     private $checkbox;
 
-    /**
-     * @var boolean
-     */
-    private $alwaysVisible = false;
+    private bool $alwaysVisible = false;
 
     /**
      * @param FormField $child
@@ -45,7 +42,7 @@ class CheckableVisibilityField extends FormField
         parent::__construct($child->getName());
 
         $this->child    = $child;
-        $this->checkbox = CheckboxField::create("Visible[{$this->name}]", '');
+        $this->checkbox = CheckboxField::create(sprintf('Visible[%s]', $this->name), '');
     }
 
     /**
@@ -67,7 +64,7 @@ class CheckableVisibilityField extends FormField
     /**
      * @return $this
      */
-    public function makeAlwaysVisible()
+    public function makeAlwaysVisible(): static
     {
         $this->alwaysVisible = true;
         $this->getCheckbox()->setValue(true);
@@ -100,7 +97,7 @@ class CheckableVisibilityField extends FormField
         return $this;
     }
 
-    public function saveInto(DataObjectInterface $record)
+    public function saveInto(DataObjectInterface $record): void
     {
         $child = clone $this->child;
         $child->setName($this->name);
@@ -122,9 +119,9 @@ class CheckableVisibilityField extends FormField
         }
     }
 
-    public function validate($validator)
+    public function validate($validator): ValidationResult
     {
-        return $this->child->validate($validator);
+        return $this->child->validate();
     }
 
     public function Value()

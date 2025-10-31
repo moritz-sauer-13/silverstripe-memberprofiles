@@ -2,9 +2,11 @@
 
 namespace Symbiote\MemberProfiles\Model;
 
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\CompositeField;
+use SilverStripe\Forms\SelectField;
 use Symbiote\MemberProfiles\Pages\MemberProfilePage;
 use SilverStripe\Versioned\Versioned;
-use SilverStripe\View\Requirements;
 use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\DropdownField;
@@ -30,13 +32,13 @@ use SilverStripe\Security\Permission;
  * @property bool $Unique
  * @property bool $Required
  * @property int $Sort
- * @method \Symbiote\MemberProfiles\Pages\MemberProfilePage ProfilePage()
+ * @method MemberProfilePage ProfilePage()
  */
 class MemberProfileField extends DataObject
 {
-    private static $table_name = 'MemberProfileField';
+    private static string $table_name = 'MemberProfileField';
 
-    private static $db = [
+    private static array $db = [
         'ProfileVisibility'       => 'Enum("Edit, Readonly, Hidden", "Hidden")',
         'RegistrationVisibility'  => 'Enum("Edit, Readonly, Hidden", "Hidden")',
         'MemberListVisible'       => 'Boolean',
@@ -52,19 +54,19 @@ class MemberProfileField extends DataObject
         'Sort'                    => 'Int'
     ];
 
-    private static $has_one = [
+    private static array $has_one = [
         'ProfilePage' => MemberProfilePage::class
     ];
 
-    private static $owned_by = [
+    private static array $owned_by = [
         'ProfilePage',
     ];
 
-    private static $extensions = [
+    private static array $extensions = [
         Versioned::class . "('Stage', 'Live')"
     ];
 
-    private static $summary_fields = [
+    private static array $summary_fields = [
         'DefaultTitle'           => 'Field',
         'ProfileVisibility'      => 'Profile Visibility',
         'RegistrationVisibility' => 'Registration Visibility',
@@ -73,7 +75,7 @@ class MemberProfileField extends DataObject
         'Required'               => 'Required'
     ];
 
-    private static $default_sort = 'Sort';
+    private static string $default_sort = 'Sort';
 
     /**
      * Temporary local cache of form fields - otherwise we can potentially be calling
@@ -82,7 +84,7 @@ class MemberProfileField extends DataObject
      * It's declared as a static so all instances have access to it after it's
      * loaded the first time.
      *
-     * @var \SilverStripe\Forms\FieldList
+     * @var FieldList
      */
     protected static $member_fields;
 
@@ -97,7 +99,7 @@ class MemberProfileField extends DataObject
         $fields->removeByName('Sort');
 
         /**
-         * @var \SilverStripe\Forms\CompositeField|null $tab
+         * @var CompositeField|null $tab
          */
         $tab = $fields->fieldByName('Root.Main');
         if ($tab) {
@@ -116,39 +118,29 @@ class MemberProfileField extends DataObject
             ));
         }
 
-        $fields->unshift(new ReadonlyField(
-            'MemberField',
-            _t('MemberProfiles.MEMBERFIELD', 'Member Field')
-        ));
+        $fields->unshift(ReadonlyField::create('MemberField', _t('MemberProfiles.MEMBERFIELD', 'Member Field')));
 
         $fields->insertBefore(
             'ProfileVisibility',
-            new HeaderField('VisibilityHeader', _t('MemberProfiles.VISIBILITY', 'Visibility'))
+            HeaderField::create('VisibilityHeader', _t('MemberProfiles.VISIBILITY', 'Visibility'))
         );
 
         $fields->insertBefore(
             'CustomError',
-            new HeaderField('ValidationHeader', _t('MemberProfiles.VALIDATION', 'Validation'))
+            HeaderField::create('ValidationHeader', _t('MemberProfiles.VALIDATION', 'Validation'))
         );
 
         if ($memberField instanceof DropdownField) {
-            $fields->replaceField('DefaultValue', $default = new DropdownField(
-                'DefaultValue',
-                _t('MemberProfiles.DEFAULTVALUE', 'Default Value'),
-                $memberField->getSource()
-            ));
+            $fields->replaceField('DefaultValue', $default = DropdownField::create('DefaultValue', _t('MemberProfiles.DEFAULTVALUE', 'Default Value'), $memberField->getSource()));
             $default->setEmptyString(' ');
         } elseif ($memberField instanceof TextField) {
-            $fields->replaceField('DefaultValue', new TextField(
-                'DefaultValue',
-                _t('MemberProfiles.DEFAULTVALUE', 'Default Value')
-            ));
+            $fields->replaceField('DefaultValue', TextField::create('DefaultValue', _t('MemberProfiles.DEFAULTVALUE', 'Default Value')));
         } else {
             $fields->removeByName('DefaultValue');
         }
 
         /**
-         * @var \SilverStripe\Forms\SelectField|null $publicVisibilityField
+         * @var SelectField|null $publicVisibilityField
          */
         $publicVisibilityField = $fields->dataFieldByName('PublicVisibility');
         if ($publicVisibilityField &&
@@ -206,9 +198,9 @@ class MemberProfileField extends DataObject
     {
         if ($this->CustomTitle) {
             return $this->CustomTitle;
-        } else {
-            return $this->getDefaultTitle(false);
         }
+
+        return $this->getDefaultTitle(false);
     }
 
     /**
@@ -224,27 +216,25 @@ class MemberProfileField extends DataObject
         $title  = $field->Title();
 
         if (!$title && $force) {
-            $title = $field->getName();
+            return $field->getName();
         }
 
         return $title;
     }
 
     /**
-     * @return \SilverStripe\Forms\FieldList
+     * @return FieldList
      */
     protected function getMemberFields()
     {
         if (!self::$member_fields) {
             self::$member_fields = singleton(Member::class)->getMemberFormFields();
         }
+
         return self::$member_fields;
     }
 
-    /**
-     * @return bool
-     */
-    public function isAlwaysRequired()
+    public function isAlwaysRequired(): bool
     {
         return in_array(
             $this->MemberField,
@@ -252,30 +242,32 @@ class MemberProfileField extends DataObject
         );
     }
 
-    /**
-     * @return bool
-     */
-    public function isAlwaysUnique()
+    public function isAlwaysUnique(): bool
     {
         return $this->MemberField == Config::inst()->get(Member::class, 'unique_identifier_field');
     }
 
-    /**
-     * @return bool
-     */
-    public function isNeverPublic()
+    public function isNeverPublic(): bool
     {
         return $this->MemberField == 'Password';
     }
 
-    public function getUnique()
+    public function getUnique(): bool
     {
-        return $this->getField('Unique') || $this->isAlwaysUnique();
+        if ($this->getField('Unique')) {
+            return true;
+        }
+
+        return $this->isAlwaysUnique();
     }
 
-    public function getRequired()
+    public function getRequired(): bool
     {
-        return $this->getField('Required') || $this->isAlwaysRequired();
+        if ($this->getField('Required')) {
+            return true;
+        }
+
+        return $this->isAlwaysRequired();
     }
 
     /**
@@ -285,15 +277,12 @@ class MemberProfileField extends DataObject
     {
         if ($this->isNeverPublic()) {
             return 'Hidden';
-        } else {
-            return $this->getField('PublicVisibility');
         }
+
+        return $this->getField('PublicVisibility');
     }
 
-    /**
-     * @return bool
-     */
-    public function getMemberListVisible()
+    public function getMemberListVisible(): bool
     {
         return $this->getField('MemberListVisible') && !$this->isNeverPublic();
     }
@@ -321,7 +310,7 @@ class MemberProfileField extends DataObject
     /**
      * @return bool|null
      */
-    private function customExtendedCan($methodName, $member, $context = array())
+    private function customExtendedCan(string $methodName, $member, $context = array())
     {
         if (!$member) {
             $member = Security::getCurrentUser();

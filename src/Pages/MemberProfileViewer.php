@@ -2,17 +2,14 @@
 
 namespace Symbiote\MemberProfiles\Pages;
 
+use SilverStripe\Model\ModelData;
+use SilverStripe\Model\List\PaginatedList;
+use SilverStripe\Model\List\ArrayList;
+use SilverStripe\Model\ArrayData;
+use SilverStripe\Model\ModelDataCustomised;
 use PageController;
-
-use Exception;
-use SilverStripe\Control\RequestHandler;
-use SilverStripe\ORM\PaginatedList;
-use SilverStripe\ORM\ArrayList;
-use SilverStripe\View\ArrayData;
 use SilverStripe\Security\Member;
 use SilverStripe\Control\Controller;
-use SilverStripe\View\ViewableData;
-use SilverStripe\Security\Permission;
 
 /**
  * Handles displaying member's public profiles.
@@ -22,20 +19,17 @@ use SilverStripe\Security\Permission;
  */
 class MemberProfileViewer extends PageController
 {
-    private static $url_handlers = [
+    private static array $url_handlers = [
         ''           => 'handleList',
         '$MemberID!' => 'handleView',
     ];
 
-    private static $allowed_actions = [
+    private static array $allowed_actions = [
         'handleList',
         'handleView',
     ];
 
-    /**
-     * @var MemberProfilePageController
-     */
-    private $parent;
+    private MemberProfilePageController $parent;
 
     /**
      * @var string
@@ -43,7 +37,6 @@ class MemberProfileViewer extends PageController
     private $name;
 
     /**
-     * @param MemberProfilePageController $parent
      * @param string $name
      */
     public function __construct(MemberProfilePageController $parent, $name)
@@ -57,10 +50,8 @@ class MemberProfileViewer extends PageController
     /**
      * Displays a list of all members on the site that belong to the selected
      * groups.
-     *
-     * @return ViewableData
      */
-    public function handleList($request)
+    public function handleList($request): ModelData
     {
         $parent = $this->getParent();
         $fields  = $parent->Fields()->filter('MemberListVisible', true);
@@ -77,11 +68,12 @@ class MemberProfileViewer extends PageController
             //
             //$members = $members->filter('ID:not', Permission::get_members_by_permission('ADMIN')->map('ID', 'ID')->toArray());
         }
+
         $members = PaginatedList::create($members, $request);
 
-        $list = new ArrayList();
+        $list = ArrayList::create();
         foreach ($members as $member) {
-            $cols   = new ArrayList();
+            $cols   = ArrayList::create();
             $public = $member->getPublicFields();
             $link   = $this->Link($member->ID);
 
@@ -94,7 +86,7 @@ class MemberProfileViewer extends PageController
                     $value = $member->{$field->MemberField};
                 }
 
-                $cols->push(new ArrayData(array(
+                $cols->push(ArrayData::create(array(
                     'Name'     => $field->MemberField,
                     'Title'    => $field->Title,
                     'Value'    => $value,
@@ -107,6 +99,7 @@ class MemberProfileViewer extends PageController
                 'Fields' => $cols
             )));
         }
+
         $list = PaginatedList::create($list, $request);
         $list->setLimitItems(false);
         $list->setTotalItems($members->getTotalItems());
@@ -114,20 +107,18 @@ class MemberProfileViewer extends PageController
         $this->data()->Title  = _t('MemberProfiles.MEMBERLIST', 'Member List');
         $this->data()->Parent = $this->getParent();
 
-        $controller = $this->customise(array(
+        return $this->customise(array(
             'Type'    => 'List',
             'Members' => $list
         ));
-
-        return $controller;
     }
 
     /**
      * Handles viewing an individual user's profile.
      *
-     * @return \SilverStripe\View\ViewableData_Customised
+     * @return ModelDataCustomised
      */
-    public function handleView($request)
+    public function handleView($request): ModelData
     {
         $id = $request->param('MemberID');
 
@@ -146,7 +137,7 @@ class MemberProfileViewer extends PageController
         }
 
         $sections     = $this->getParent()->Sections();
-        $sectionsList = new ArrayList();
+        $sectionsList = ArrayList::create();
 
         foreach ($sections as $section) {
             $sectionsList->push($section);
@@ -159,20 +150,18 @@ class MemberProfileViewer extends PageController
         );
         $this->data()->Parent = $this->getParent();
 
-        $controller = $this->customise(array(
+        return $this->customise(array(
             'Type'     => 'View',
             'Member'   => $member,
             'Sections' => $sectionsList,
             'IsSelf'   => $member->ID == Security::getCurrentUser()
         ));
-
-        return $controller;
     }
 
     /**
      * @var MemberProfilePageController
      */
-    protected function getParent()
+    protected function getParent(): MemberProfilePageController
     {
         return $this->parent;
     }
