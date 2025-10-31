@@ -12,12 +12,12 @@ class MemberProfilesAddSectionAction_ItemRequest extends GridFieldDetailForm_Ite
     {
         if ($this->record->ID) {
             return parent::Link($action);
-        } else {
-            return Controller::join_links(
-                $this->gridField->Link(),
-                'addsection',
-                urlencode(get_class($this->record))
-            );
         }
+
+        return Controller::join_links(
+            $this->gridField->Link(),
+            'addsection',
+            urlencode(get_class($this->record))
+        );
     }
 }

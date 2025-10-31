@@ -2,9 +2,9 @@
 
 namespace Symbiote\MemberProfiles\Email;
 
+use SilverStripe\ORM\FieldType\DBDatetime;
 use Symbiote\MemberProfiles\Pages\MemberProfilePage;
 use SilverStripe\Security\Member;
-use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\Security\Security;
 use SilverStripe\Control\Controller;
@@ -17,15 +17,9 @@ use SilverStripe\Control\Email\Email;
  */
 class MemberConfirmationEmail extends Email
 {
-    /**
-     * @var Member|null
-     */
-    private $member = null;
+    private Member $member;
 
-    /**
-     * @var MemberProfilePage
-     */
-    private $page = null;
+    private MemberProfilePage $page;
 
     /**
      * The default confirmation email subject if none is provided.
@@ -94,10 +88,6 @@ class MemberConfirmationEmail extends Email
 </ul>
 ';
 
-    /**
-     * @param MemberProfilePage $page
-     * @param Member $member
-     */
     public function __construct(MemberProfilePage $page, Member $member)
     {
         parent::__construct();
@@ -109,6 +99,7 @@ class MemberConfirmationEmail extends Email
         if (!$emailFrom) {
             $emailFrom = Email::config()->get('admin_email');
         }
+
         $this->setFrom($emailFrom);
         $this->setTo($member->Email);
         $this->setSubject($this->getParsedString($page->EmailSubject));
@@ -125,25 +116,23 @@ class MemberConfirmationEmail extends Email
      * @return string
      */
     /*public static function get_parsed_string($string, Member $member, $page)
-    {
-        $class = get_called_class();
-        $inst = new $class($page, $member, true);
-        return $inst->getParsedString($string);
-    }*/
-
+      {
+          $class = get_called_class();
+          $inst = new $class($page, $member, true);
+          return $inst->getParsedString($string);
+      }*/
     /**
      * Replaces variables inside an email template according to {@link TEMPLATE_NOTE}.
      *
      * @param string $string
-     * @return string
      */
-    public function getParsedString($string)
+    public function getParsedString($string): string
     {
         $member = $this->getMember();
-        $page = $this->getPage();
+        $this->getPage();
 
         /**
-         * @var \SilverStripe\ORM\FieldType\DBDatetime $createdDateObj
+         * @var DBDatetime $createdDateObj
          */
         $createdDateObj = $member->obj('Created');
 
@@ -157,7 +146,7 @@ class MemberConfirmationEmail extends Email
             '$ConfirmLink'    => Controller::join_links(
                 $this->page->AbsoluteLink('confirm'),
                 $member->ID,
-                "?key={$member->ValidationKey}"
+                '?key=' . $member->ValidationKey
             ),
             '$LostPasswordLink' => Controller::join_links(
                 $absoluteBaseURL,
@@ -166,8 +155,9 @@ class MemberConfirmationEmail extends Email
             '$Member.Created' => $createdDateObj->Nice()
         );
         foreach (array('Name', 'FirstName', 'Surname', 'Email') as $field) {
-            $variables["\$Member.$field"] = $member->$field;
+            $variables['$Member.' . $field] = $member->$field;
         }
+
         $this->extend('updateEmailVariables', $variables);
 
         return str_replace(array_keys($variables), array_values($variables), $string);
@@ -180,18 +170,12 @@ class MemberConfirmationEmail extends Email
         return $absoluteBaseURL;
     }
 
-    /**
-     * @return MemberProfilePage
-     */
-    public function getPage()
+    public function getPage(): MemberProfilePage
     {
         return $this->page;
     }
 
-    /**
-     * @return Member
-     */
-    public function getMember()
+    public function getMember(): Member
     {
         return $this->member;
     }

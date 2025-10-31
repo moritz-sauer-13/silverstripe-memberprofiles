@@ -2,12 +2,12 @@
 
 namespace Symbiote\MemberProfiles\Forms;
 
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use Symbiote\MemberProfiles\Model\MemberProfileField;
 use SilverStripe\Security\Member;
 use SilverStripe\Core\Convert;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\FieldList;
-use SilverStripe\Forms\RequiredFields;
 use SilverStripe\Security\Security;
 
 /**
@@ -15,8 +15,10 @@ use SilverStripe\Security\Security;
  *
  * @package silverstripe-memberprofiles
  */
-class MemberProfileValidator extends RequiredFields
+class MemberProfileValidator extends RequiredFieldsValidator
 {
+    public $form;
+
     /**
      * @var FieldList|MemberProfileField[] $fields
      */
@@ -38,17 +40,14 @@ class MemberProfileValidator extends RequiredFields
      */
     public function __construct($fields, $member = null)
     {
-        parent::__construct();
-
         $this->fields = $fields;
         $this->member = $member;
 
         foreach ($this->fields as $field) {
-            if ($field->Required) {
-                if ($field->ProfileVisibility !== 'Readonly') {
-                    $this->addRequiredField($field->MemberField);
-                }
+            if ($field->Required && $field->ProfileVisibility !== 'Readonly') {
+                $this->addRequiredField($field->MemberField);
             }
+
             if ($field->Unique) {
                 $this->unique[] = $field->MemberField;
             }
@@ -62,7 +61,7 @@ class MemberProfileValidator extends RequiredFields
     /**
      * JavaScript validation is disabled on profile forms.
      */
-    public function javascript()
+    public function javascript(): null
     {
         return null;
     }
@@ -91,8 +90,10 @@ class MemberProfileValidator extends RequiredFields
                 if ($current = Security::getCurrentUser()->ID) {
                     $existing = $existing->filter('ID:not', $current);
                 }
+
                 $emailOK = !$existing->first();
             }
+
             if ($other && (!$member || !$member->exists() || $other->ID != $member->ID) || !$emailOK) {
                 $fieldInstance = $this->form->Fields()->dataFieldByName($field);
 

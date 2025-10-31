@@ -2,6 +2,8 @@
 
 namespace Symbiote\MemberProfiles\Extensions;
 
+use SilverStripe\Core\Extension;
+use SilverStripe\Core\Validation\ValidationResult;
 use Symbiote\MemberProfiles\Pages\MemberProfilePage;
 use Symbiote\MemberProfiles\Email\MemberConfirmationEmail;
 use SilverStripe\Forms\CheckboxSetField;
@@ -9,8 +11,6 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\DropdownField;
-use SilverStripe\ORM\DataExtension;
-use SilverStripe\ORM\ValidationResult;
 
 /**
  * Adds validation fields to the Member object, as well as exposing the user's
@@ -18,30 +18,32 @@ use SilverStripe\ORM\ValidationResult;
  *
  * @package silverstripe-memberprofiles
  */
-class MemberProfileExtension extends DataExtension
+class MemberProfileExtension extends Extension
 {
-    private static $db = array(
+    public $owner;
+
+    private static array $db = array(
         'ValidationKey'   => 'Varchar(40)',
         'NeedsValidation' => 'Boolean',
         'NeedsApproval'   => 'Boolean',
         'PublicFieldsRaw' => 'Text'
     );
 
-    private static $has_one = array(
+    private static array $has_one = array(
         'ProfilePage' => MemberProfilePage::class
     );
 
-    public function getPublicFields()
+    public function getPublicFields(): array
     {
         return (array) unserialize($this->owner->getField('PublicFieldsRaw'));
     }
 
-    public function setPublicFields($fields)
+    public function setPublicFields($fields): void
     {
         $this->owner->setField('PublicFieldsRaw', serialize($fields));
     }
 
-    public function canLogIn(ValidationResult $result)
+    public function canLogIn(ValidationResult $result): void
     {
         if ($this->owner->NeedsApproval) {
             $result->addError(_t(
@@ -61,7 +63,7 @@ class MemberProfileExtension extends DataExtension
     /**
      * Allows admin users to manually confirm a user.
      */
-    public function saveManualEmailValidation($value)
+    public function saveManualEmailValidation($value): void
     {
         if ($value === 'confirm') {
             $this->owner->NeedsValidation = false;
@@ -71,12 +73,12 @@ class MemberProfileExtension extends DataExtension
         }
     }
 
-    public function populateDefaults()
+    public function populateDefaults(): void
     {
         $this->owner->ValidationKey = sha1(mt_rand() . mt_rand());
     }
 
-    public function onAfterWrite()
+    public function onAfterWrite(): void
     {
         $changed = $this->owner->getChangedFields();
 
@@ -93,7 +95,7 @@ class MemberProfileExtension extends DataExtension
         }
     }
 
-    public function updateMemberFormFields($fields)
+    public function updateMemberFormFields($fields): void
     {
         $fields->removeByName('ValidationKey');
         $fields->removeByName('NeedsValidation');
@@ -104,10 +106,10 @@ class MemberProfileExtension extends DataExtension
         // For now we just pass an empty array as the list of selectable groups -
         // it's up to anything that uses this to populate it appropriately
         $existing = $this->owner->Groups();
-        $fields->push(new CheckboxSetField('Groups', 'Groups', array(), $existing));
+        $fields->push(CheckboxSetField::create('Groups', 'Groups', array(), $existing));
     }
 
-    public function updateCMSFields(FieldList $fields)
+    public function updateCMSFields(FieldList $fields): void
     {
         $fields->removeByName('ValidationKey');
         $fields->removeByName('NeedsValidation');
@@ -130,10 +132,10 @@ class MemberProfileExtension extends DataExtension
 
             $fields->addFieldsToTab('Root.Main', array(
                 // ApprovalAnchor is used by MemberApprovalController (2017-02-01)
-                new LiteralField('ApprovalAnchor', "<div id=\"MemberProfileRegistrationApproval\"></div>"),
-                new HeaderField('ApprovalHeader', _t('MemberProfiles.REGAPPROVAL', 'Registration Approval')),
-                new LiteralField('ApprovalNote', "<p>$note</p>"),
-                new DropdownField('NeedsApproval', '', array(
+                LiteralField::create('ApprovalAnchor', '<div id="MemberProfileRegistrationApproval"></div>'),
+                HeaderField::create('ApprovalHeader', _t('MemberProfiles.REGAPPROVAL', 'Registration Approval')),
+                LiteralField::create('ApprovalNote', sprintf('<p>%s</p>', $note)),
+                DropdownField::create('NeedsApproval', '', array(
                     true  => _t('MemberProfiles.DONOTCHANGE', 'Do not change'),
                     false => _t('MemberProfiles.APPROVETHISMEMBER', 'Approve this member')
                 ))
@@ -142,12 +144,12 @@ class MemberProfileExtension extends DataExtension
 
         if ($this->owner->NeedsValidation) {
             $fields->addFieldsToTab('Root.Main', array(
-            new HeaderField('ConfirmationHeader', _t('MemberProfiles.EMAILCONFIRMATION', 'Email Confirmation')),
-            new LiteralField('ConfirmationNote', '<p>' . _t(
+            HeaderField::create('ConfirmationHeader', _t('MemberProfiles.EMAILCONFIRMATION', 'Email Confirmation')),
+            LiteralField::create('ConfirmationNote', '<p>' . _t(
                 'MemberProfiles.NOLOGINTILLCONFIRMED',
                 'The member cannot log in until their account is confirmed.'
             ) . '</p>'),
-            new DropdownField('ManualEmailValidation', '', array (
+            DropdownField::create('ManualEmailValidation', '', array (
                 'unconfirmed' => _t('MemberProfiles.UNCONFIRMED', 'Unconfirmed'),
                 'resend'      => _t('MemberProfiles.RESEND', 'Resend confirmation email'),
                 'confirm'     => _t('MemberProfiles.MANUALLYCONFIRM', 'Manually confirm')

@@ -2,6 +2,7 @@
 
 namespace Symbiote\MemberProfiles\Pages;
 
+use SilverStripe\ORM\DataList;
 use Page;
 use SilverStripe\Forms\FieldList;
 use Symbiote\MemberProfiles\Forms\MemberProfilesAddSectionAction;
@@ -32,7 +33,6 @@ use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\TreeDropdownField;
 use SilverStripe\ORM\HasManyList;
 use SilverStripe\ORM\UnsavedRelationList;
-use SilverStripe\ORM\ValidationResult;
 use SilverStripe\Security\Security;
 
 /**
@@ -66,16 +66,16 @@ use SilverStripe\Security\Security;
  * @property string $ConfirmationTitle
  * @property string $ConfirmationContent
  * @property int $PostRegistrationTargetID
- * @method \SilverStripe\CMS\Model\SiteTree PostRegistrationTarget()
- * @method \SilverStripe\ORM\DataList|\SilverStripe\Security\Group[] Groups()
- * @method \SilverStripe\ORM\DataList|\SilverStripe\Security\Group[] SelectableGroups()
- * @method \SilverStripe\ORM\DataList|\SilverStripe\Security\Group[] ApprovalGroups()
- * @method \SilverStripe\ORM\HasManyList|MemberProfileFieldsSection[] Sections()
+ * @method SiteTree PostRegistrationTarget()
+ * @method DataList|Group[] Groups()
+ * @method DataList|Group[] SelectableGroups()
+ * @method DataList|Group[] ApprovalGroups()
+ * @method HasManyList|MemberProfileFieldsSection[] Sections()
  */
 class MemberProfilePage extends Page
 {
 
-    private static $db = array (
+    private static array $db = array (
         'ProfileTitle'             => 'Varchar(255)',
         'RegistrationTitle'        => 'Varchar(255)',
         'AfterRegistrationTitle'   => 'Varchar(255)',
@@ -96,32 +96,32 @@ class MemberProfilePage extends Page
         'ConfirmationContent'      => 'HTMLText'
     );
 
-    private static $has_one = array(
+    private static array $has_one = array(
         'PostRegistrationTarget' => SiteTree::class,
     );
 
-    private static $has_many = array (
+    private static array $has_many = array (
         'Fields'   => MemberProfileField::class,
         'Sections' => MemberProfileFieldsSection::class
     );
 
-    private static $owns = array(
+    private static array $owns = array(
         'Fields',
         'Sections',
     );
 
-    private static $cascade_deletes = [
+    private static array $cascade_deletes = [
         'Fields',
         'Sections',
     ];
 
-    private static $many_many = array (
+    private static array $many_many = array (
         'Groups'           => Group::class,
         'SelectableGroups' => Group::class,
         'ApprovalGroups'   => Group::class,
     );
 
-    private static $defaults = array (
+    private static array $defaults = array (
         'ProfileTitle'             => 'Edit Profile',
         'RegistrationTitle'        => 'Register / Log In',
         'AfterRegistrationTitle'   => 'Registration Successful',
@@ -133,7 +133,7 @@ class MemberProfilePage extends Page
         'ConfirmationContent'      => '<p>Your account is now active, and you have been logged in. Thank you!</p>'
     );
 
-    private static $table_name = 'MemberProfilePage';
+    private static string $table_name = 'MemberProfilePage';
 
     /**
      * An array of default settings for some standard member fields.
@@ -168,9 +168,9 @@ class MemberProfilePage extends Page
         )
     );
 
-    private static $description = '';
+    private static string $class_description = '';
 
-    private static $icon = 'moritz-sauer-13/silverstripe-memberprofiles: client/images/memberprofilepage.png';
+    private static string $cms_icon = 'moritz-sauer-13/silverstripe-memberprofiles: client/images/memberprofilepage.png';
 
     /**
      * If profile editing is disabled, but the current user can add members,
@@ -194,51 +194,20 @@ class MemberProfilePage extends Page
 
     public function getCMSFields()
     {
-        $this->beforeUpdateCMSFields(function (FieldList $fields) {
-            $fields->addFieldToTab('Root', new TabSet('Profile', _t('MemberProfiles.PROFILE', 'Profile')));
-            $fields->addFieldToTab('Root', new Tab('ContentBlocks', _t('MemberProfiles.CONTENTBLOCKS', 'Content Blocks')));
-            $fields->addFieldToTab('Root', new Tab('Email', _t('MemberProfiles.Email', 'Email')));
+        $this->beforeUpdateCMSFields(function (FieldList $fields): void {
+            $fields->addFieldToTab('Root', TabSet::create('Profile', _t('MemberProfiles.PROFILE', 'Profile')));
+            $fields->addFieldToTab('Root', Tab::create('ContentBlocks', _t('MemberProfiles.CONTENTBLOCKS', 'Content Blocks')));
+            $fields->addFieldToTab('Root', Tab::create('Email', _t('MemberProfiles.Email', 'Email')));
             $fields->fieldByName('Root.Main')->setTitle(_t('MemberProfiles.MAIN', 'Main'));
 
             $fields->addFieldsToTab('Root.Profile', array(
-                new Tab(
-                    'Fields',
-                    _t('MemberProfiles.FIELDS', 'Fields'),
-                    new GridField(
-                        'Fields',
-                        _t('MemberProfiles.PROFILEFIELDS', 'Profile Fields'),
-                        $this->Fields(),
-                        $grid = GridFieldConfig_RecordEditor::create()
-                            ->removeComponentsByType(GridFieldDeleteAction::class)
-                            ->removeComponentsByType(GridFieldAddNewButton::class)
-                    )
-                ),
-                new Tab(
-                    'Groups',
-                    _t('MemberProfiles.GROUPS', 'Groups'),
-                    $groups = new TreeMultiselectField(
-                        'Groups',
-                        _t('MemberProfiles.GROUPS', 'Groups'),
-                        Group::class
-                    ),
-                    $selectable = new TreeMultiselectField(
-                        'SelectableGroups',
-                        _t('MemberProfiles.SELECTABLEGROUPS', 'Selectable Groups'),
-                        Group::class
-                    )
-                ),
-                new Tab(
-                    'PublicProfile',
-                    _t('MemberProfiles.PUBLICPROFILE', 'Public Profile'),
-                    new GridField(
-                        'Sections',
-                        _t('MemberProfiles.PROFILESECTIONS', 'Profile Sections'),
-                        $this->Sections(),
-                        GridFieldConfig_RecordEditor::create()
-                            ->removeComponentsByType(GridFieldAddNewButton::class)
-                            ->addComponent(new MemberProfilesAddSectionAction())
-                    )
-                )
+                Tab::create('Fields', _t('MemberProfiles.FIELDS', 'Fields'), GridField::create('Fields', _t('MemberProfiles.PROFILEFIELDS', 'Profile Fields'), $this->Fields(), $grid = GridFieldConfig_RecordEditor::create()
+                    ->removeComponentsByType(GridFieldDeleteAction::class)
+                    ->removeComponentsByType(GridFieldAddNewButton::class))),
+                Tab::create('Groups', _t('MemberProfiles.GROUPS', 'Groups'), $groups = TreeMultiselectField::create('Groups', _t('MemberProfiles.GROUPS', 'Groups'), Group::class), $selectable = TreeMultiselectField::create('SelectableGroups', _t('MemberProfiles.SELECTABLEGROUPS', 'Selectable Groups'), Group::class)),
+                Tab::create('PublicProfile', _t('MemberProfiles.PUBLICPROFILE', 'Public Profile'), GridField::create('Sections', _t('MemberProfiles.PROFILESECTIONS', 'Profile Sections'), $this->Sections(), GridFieldConfig_RecordEditor::create()
+                    ->removeComponentsByType(GridFieldAddNewButton::class)
+                    ->addComponent(MemberProfilesAddSectionAction::create())))
             ));
 
             /* @var GridFieldDataColumns $dataColumns */
@@ -257,7 +226,7 @@ class MemberProfilePage extends Page
             if (class_exists(GridFieldOrderableRows::class)) {
                 $grid->addComponent(GridFieldOrderableRows::create('Sort'));
             } elseif (class_exists(GridFieldSortableRows::class)) {
-                $grid->addComponent(new GridFieldSortableRows('Sort'));
+                $grid->addComponent(GridFieldSortableRows::create('Sort'));
             }
 
 
@@ -301,11 +270,11 @@ class MemberProfilePage extends Page
 
             foreach ($contentFields as $type) {
                 $fields->addFieldToTab("Root.ContentBlocks", ToggleCompositeField::create(
-                    "{$type}Toggle",
+                    $type . 'Toggle',
                     _t('MemberProfiles.'.  strtoupper($type), FormField::name_to_label($type)),
                     array(
-                        TextField::create("{$type}Title", _t('MemberProfiles.TITLE', 'Title')),
-                        $content = HtmlEditorField::create("{$type}Content", _t('MemberProfiles.CONTENT', 'Content'))
+                        TextField::create($type . 'Title', _t('MemberProfiles.TITLE', 'Title')),
+                        $content = HtmlEditorField::create($type . 'Content', _t('MemberProfiles.CONTENT', 'Content'))
                     )
                 ));
                 $content->setRows(15);
@@ -346,7 +315,7 @@ class MemberProfilePage extends Page
     {
         $fields = parent::getSettingsFields();
 
-        $fields->addFieldToTab('Root', new Tab('Profile'), 'Settings');
+        $fields->addFieldToTab('Root', Tab::create('Profile'), 'Settings');
         $fields->addFieldsToTab('Root.Profile', array(
             CheckboxField::create(
                 'AllowRegistration',
@@ -433,7 +402,7 @@ class MemberProfilePage extends Page
 
         foreach ($fields as $name => $field) {
             if (!in_array($name, $included)) {
-                $profileField = new MemberProfileField();
+                $profileField = MemberProfileField::create();
                 $profileField->MemberField = $name;
 
                 if (isset(self::$profile_field_defaults[$name])) {
@@ -447,10 +416,10 @@ class MemberProfilePage extends Page
         return $list;
     }
 
-    public function onAfterWrite()
+    protected function onAfterWrite()
     {
         if ($this->isChanged('ID', 2)) {
-            $section = new MemberProfileFieldsSection();
+            $section = MemberProfileFieldsSection::create();
             $section->ParentID = $this->ID;
             $section->write();
         }
@@ -458,10 +427,7 @@ class MemberProfilePage extends Page
         parent::onAfterWrite();
     }
 
-    /**
-     * @return bool
-     */
-    public function CanAddMembers()
+    public function CanAddMembers(): bool
     {
         return $this->AllowAdding && singleton(Member::class)->canCreate();
     }
