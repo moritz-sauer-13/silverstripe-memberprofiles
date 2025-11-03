@@ -95,7 +95,7 @@ class MemberProfileSection extends DataObject
      * Returns the title for this profile section. You must implement this in
      * subclasses.
      */
-    public function getDefaultTitle(): never
+    public function getDefaultTitle()
     {
         throw new Exception(sprintf('Please implement getDefaultTitle() on {get_class(%s)}.', $this));
     }

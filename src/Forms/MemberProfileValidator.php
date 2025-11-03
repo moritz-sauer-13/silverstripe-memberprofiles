@@ -2,13 +2,14 @@
 
 namespace Symbiote\MemberProfiles\Forms;
 
-use SilverStripe\Forms\Validation\RequiredFieldsValidator;
-use Symbiote\MemberProfiles\Model\MemberProfileField;
-use SilverStripe\Security\Member;
+use SilverStripe\Forms\Form;
 use SilverStripe\Core\Convert;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\FieldList;
+use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
+use Symbiote\MemberProfiles\Model\MemberProfileField;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 
 /**
  * This validator provides the unique and required functionality for {@link MemberProfileField}s.
@@ -17,7 +18,7 @@ use SilverStripe\Security\Security;
  */
 class MemberProfileValidator extends RequiredFieldsValidator
 {
-    public $form;
+    public Form $form;
 
     /**
      * @var FieldList|MemberProfileField[] $fields
