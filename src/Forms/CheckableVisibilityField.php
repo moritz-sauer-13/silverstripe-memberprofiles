@@ -119,7 +119,7 @@ class CheckableVisibilityField extends FormField
         }
     }
 
-    public function validate($validator): ValidationResult
+    public function validate(): ValidationResult
     {
         return $this->child->validate();
     }
