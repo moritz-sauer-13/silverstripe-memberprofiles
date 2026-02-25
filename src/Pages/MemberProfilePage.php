@@ -195,6 +195,24 @@ class MemberProfilePage extends Page
     public function getCMSFields()
     {
         $this->beforeUpdateCMSFields(function (FieldList $fields): void {
+            $fields->removeByName([
+                'Fields',
+                'Sections',
+                'Groups',
+                'SelectableGroups',
+                'ProfileTitle',
+                'RegistrationTitle',
+                'AfterRegistrationTitle',
+                'ProfileContent',
+                'RegistrationContent',
+                'AfterRegistrationContent',
+                'EmailType',
+                'EmailFrom',
+                'EmailSubject',
+                'EmailTemplate',
+                'ConfirmationTitle',
+                'ConfirmationContent'
+            ], true);
             $fields->addFieldToTab('Root', TabSet::create('Profile', _t('MemberProfiles.PROFILE', 'Profile')));
             $fields->addFieldToTab('Root', Tab::create('ContentBlocks', _t('MemberProfiles.CONTENTBLOCKS', 'Content Blocks')));
             $fields->addFieldToTab('Root', Tab::create('Email', _t('MemberProfiles.Email', 'Email')));
