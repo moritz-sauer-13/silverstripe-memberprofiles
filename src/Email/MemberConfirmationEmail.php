@@ -165,7 +165,7 @@ class MemberConfirmationEmail extends Email
 
     public function BaseURL()
     {
-        $absoluteBaseURL = parent::BaseURL();
+        $absoluteBaseURL = Director::absoluteBaseURL();
         $this->extend('updateBaseURL', $absoluteBaseURL);
         return $absoluteBaseURL;
     }
