@@ -9,6 +9,7 @@ use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\Security\Security;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\Email\Email;
+use SilverStripe\Control\Director;
 
 /**
  * An email sent to the user with a link to validate and activate their account.
