@@ -100,6 +100,11 @@ class MemberConfirmationEmail extends Email
         if (!$emailFrom) {
             $emailFrom = Email::config()->get('admin_email');
         }
+        if($member->ValidationKey == "")
+        {
+            $member->ValidationKey = sha1(mt_rand() . mt_rand());
+            $member->write();
+        }
 
         $this->setFrom($emailFrom);
         $this->setTo($member->Email);
