@@ -88,7 +88,8 @@ class MemberProfileValidator extends RequiredFields
 
                 // This ensures the existing member isn't the same as the current member, in case they're updating information.
 
-                if ($current = Security::getCurrentUser()->ID) {
+                $currentUser = Security::getCurrentUser();
+                if ($currentUser && ($current = $currentUser->ID)) {
                     $existing = $existing->filter('ID:not', $current);
                 }
                 $emailOK = !$existing->first();

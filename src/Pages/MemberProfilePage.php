@@ -180,8 +180,11 @@ class MemberProfilePage extends Page
      */
     public function Link($action = null)
     {
+        $currentUser = Security::getCurrentUser();
+
         if (!$action
-            && Security::getCurrentUser()->ID
+            && $currentUser
+            && $currentUser->ID
             && !$this->AllowProfileEditing
             && $this->CanAddMembers()
         ) {
